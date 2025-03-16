@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Image Carousel</title>
+    <style>
+        .carousel-container {
+            max-width: 60%;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .carousel-track {
+            display: flex;
+            transition: transform 0.4s ease-in-out;
+            gap: 15px;
+        }
+
+        .carousel-item {
+            min-width: calc(33.33% - 10px); /* Show 3 items at a time */
+            height: 300px;
+            flex: 0 0 auto;
+            position: relative;
+        }
+
+        .carousel-item img {
+            width: 70%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .carousel-controls {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+        }
+
+        .carousel-btn {
+            cursor: pointer;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.2rem;
+        }
+
+        .carousel-dots {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .carousel-dot {
+            cursor: pointer;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #bbb;
+            transition: background-color 0.3s;
+        }
+
+        .carousel-dot.active {
+            background-color: #717171;
+        }
+
+        @media (max-width: 768px) {
+            .carousel-item {
+                min-width: calc(50% - 10px); /* Show 2 items on tablets */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .carousel-item {
+                min-width: 100%; /* Show 1 item on mobile */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="carousel-container">
+        <div class="carousel-track">
+            <div class="carousel-item">
+                <img src="img/news1.jpg" alt="Image 1">
+            </div>
+            <div class="carousel-item">
+                <img src="img/news2.jpg" alt="Image 2">
+            </div>
+            <div class="carousel-item">
+                <img src="img/news3.jpg" alt="Image 3">
+            </div>
+             
+        </div>
+
+        <div class="carousel-controls">
+            <button class="carousel-btn prev">❮</button>
+            <button class="carousel-btn next">❯</button>
+        </div>
+
+        <div class="carousel-dots"></div>
+    </div>
+
+    <script>
+        const track = document.querySelector('.carousel-track');
+        const items = document.querySelectorAll('.carousel-item');
+        const prevBtn = document.querySelector('.prev');
+        const nextBtn = document.querySelector('.next');
+        const dotsContainer = document.querySelector('.carousel-dots');
+
+        let currentPosition = 0;
+        const itemsPerView = 3; // Number of items visible at once
+        let autoSlideInterval;
+
+        // Create dots based on number of item groups
+        const totalDots = Math.ceil(items.length / itemsPerView);
+        for (let i = 0; i < totalDots; i++) {
+            const dot = document.createElement('div');
+            dot.classList.add('carousel-dot');
+            if (i === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => goToGroup(i));
+            dotsContainer.appendChild(dot);
+        }
+
+        const dots = document.querySelectorAll('.carousel-dot');
+
+        function updateCarousel() {
+            const itemWidth = items[0].offsetWidth + 15; // Width + gap
+            track.style.transform = `translateX(-${currentPosition * itemWidth}px)`;
+            
+            // Update dots
+            const activeGroup = Math.floor(currentPosition / itemsPerView);
+            dots.forEach((dot, index) => 
+                dot.classList.toggle('active', index === activeGroup)
+            );
+        }
+
+        function nextGroup() {
+            const maxPosition = items.length - itemsPerView;
+            currentPosition = Math.min(currentPosition + itemsPerView, maxPosition);
+            updateCarousel();
+            resetAutoSlide();
+        }
+
+        function prevGroup() {
+            currentPosition = Math.max(currentPosition - itemsPerView, 0);
+            updateCarousel();
+            resetAutoSlide();
+        }
+
+        function goToGroup(groupIndex) {
+            currentPosition = groupIndex * itemsPerView;
+            updateCarousel();
+            resetAutoSlide();
+        }
+
+        // Auto-slide functionality
+        function startAutoSlide() {
+            autoSlideInterval = setInterval(() => {
+                if (currentPosition >= items.length - itemsPerView) {
+                    currentPosition = 0;
+                } else {
+                    nextGroup();
+                }
+                updateCarousel();
+            }, 3000);
+        }
+
+        function resetAutoSlide() {
+            clearInterval(autoSlideInterval);
+            startAutoSlide();
+        }
+
+        // Event listeners
+        prevBtn.addEventListener('click', prevGroup);
+        nextBtn.addEventListener('click', nextGroup);
+        startAutoSlide();
+
+        // Pause on hover
+        track.addEventListener('mouseenter', () => clearInterval(autoSlideInterval));
+        track.addEventListener('mouseleave', startAutoSlide);
+
+        // Responsive adjustments
+        window.addEventListener('resize', () => {
+            updateCarousel();
+            resetAutoSlide();
+        });
+    </script>
+</body>
+</html>
